@@ -1,0 +1,1 @@
+tsc && cd .. && node backend

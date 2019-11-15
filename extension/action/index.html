@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+	</head>
+	<body>
+		<h1 id="title">Now Playing</h1>
+		<strong id="song">Artist - Song</strong></br>
+		<span id="status">Connected to local server</span></br>
+
+		<strong>Port</strong></br>
+		Needs to match port of local server</br>
+		<input type="text" id="port"></br>
+
+		<strong>Polling Interval</strong></br>
+		A lower delay means faster update speeds but may draw more resources</br>
+		<input type="text" id="polling_interval"> ms</br>
+
+		<strong>Space</strong></br>
+		Amount of spaces to place behind song name.</br>
+		For use with scrolling text</br>
+		<input type="text" id="space"> spaces</br>
+
+		<input type="button" value="Save" id="save">
+
+		<script src="build/build.js"></script>
+	</body>
+</html>

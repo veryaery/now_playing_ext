@@ -1,0 +1,1 @@
+webpack && cd action && webpack

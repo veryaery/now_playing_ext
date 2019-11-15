@@ -1,0 +1,9 @@
+{
+	// Port to run local server on
+	// Needs to be matched in extension
+	port: 1337,
+
+	// Path to the song.txt file the local server shall write to 
+	// Can either be relative to the current working directory or absolute
+	song_path: "./song.txt"
+}

@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"outDir": "build",
+		"target": "es3",
+		"module": "commonjs",
+		"lib": [ "es5", "dom" ],
+		"sourceMap": true
+	},
+	"include": [
+		"src/**/*.ts"
+	]
+}
