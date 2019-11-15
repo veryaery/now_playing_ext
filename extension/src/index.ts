@@ -2,15 +2,37 @@ import * as browser from "webextension-polyfill";
 import * as socket_io from "socket.io-client";
 import * as url from "url";
 
+import * as defaults from "../defaults.json";
+
 const POLLING_INTERVAL: number = 1000;
 const SUFFIX: string = " - YouTube";
 
-const socket: SocketIOClient.Socket = socket_io("http://localhost:1337");
-
 let last_poll: number = 0;
+
+let socket: SocketIOClient.Socket;
 
 let playing: boolean = true;
 let last_song: string = "";
+
+function socket_listeners(socket: SocketIOClient.Socket) {
+	socket.on("connect", () => {
+		console.log("Connected to local server");
+	});
+
+	socket.on("disconnect", () => {
+		console.log("Disconnected from local server");
+	});
+}
+
+async function restart() {
+	const port: number = await browser.storage.local.get("port") || defaults.port;
+	const poll_interval: number = await browser.storage.local.get("poll_interval") || defaults.poll_interval;
+	const space: number = await browser.storage.local.get("space") || defaults.space;
+
+	socket = socket_io("http://localhost:" + port);
+
+	socket_listeners(socket);
+}
 
 browser.runtime.onMessage.addListener((message) => {
 	console.log(message);

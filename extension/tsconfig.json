@@ -3,6 +3,7 @@
 		"outDir": "build",
 		"target": "es3",
 		"module": "commonjs",
-		"lib": [ "es6", "dom" ]
+		"lib": [ "es6", "dom" ],
+		"resolveJsonModule": true
 	}
 }
