@@ -17,13 +17,50 @@ let space: number;
 let socket: SocketIOClient.Socket;
 let timeout: number;
 
-let last_poll: number = 0;
-let playing: boolean = true;
-let song: string = "";
+let last_poll: number;
+let playing: boolean;
+let song: string;
+
+function send_connected() {
+	browser.runtime.sendMessage({
+		type: MessageType.Connected,
+		payload: socket && socket.connected
+	});
+}
+
+function send_playing() {
+	if (playing) {
+		browser.runtime.sendMessage({
+			type: MessageType.Playing,
+			payload: song
+		});
+	} else {
+		browser.runtime.sendMessage({ type: MessageType.NotPlaying });
+	}
+}
+
+function emit_playing() {
+	if (playing) {
+		socket.emit("playing", song);
+	} else {
+		socket.emit("not_playing");
+	}
+}
+
+function update_disconnect() {
+	browser.browserAction.setIcon({
+		path: {
+			64: "img/disconnected.png"
+		}
+	});
+	browser.browserAction.setTitle({
+		title: "Disconnected"
+	});
+
+	send_connected();
+}
 
 async function poll() {
-	console.log("Polling");
-
 	for (const window of await browser.windows.getAll({ populate: true })) {
 		for (const tab of window.tabs) {
 			if (
@@ -39,7 +76,8 @@ async function poll() {
 
 					console.log("Now playing: " + song);
 
-					socket.emit("playing", song);
+					emit_playing();
+					send_playing();
 				}
 
 				return;
@@ -52,7 +90,8 @@ async function poll() {
 
 		console.log("Not playing");
 
-		socket.emit("not_playing");
+		emit_playing();
+		send_playing();
 	}
 }
 
@@ -77,27 +116,46 @@ function socket_listeners(socket: SocketIOClient.Socket) {
 	socket.on("connect", () => {
 		console.log("Connected to local server");
 
-		polling_loop();
+		browser.browserAction.setIcon({
+			path: {
+				64: "img/connected.png"
+			}
+		});
+		browser.browserAction.setTitle({
+			title: "Connected"
+		});
+
+		emit_playing();
+		send_connected();
 	});
 
 	socket.on("disconnect", () => {
 		console.log("Disconnected from local server");
-
-		if (timeout) {
-			clearTimeout(timeout);
-		}
+		update_disconnect();
 	});
 }
 
 async function restart() {
-	const storage: Storage = await browser.storage.local.get();
+	const storage: Storage = <Storage>await browser.storage.local.get();
 
 	port = storage.port || defaults.port;
 	poll_interval = storage.poll_interval || defaults.poll_interval;
 	space = storage.space || defaults.space;
 
-	socket = socket_io("http://localhost:" + port);
+	if (socket) {
+		socket.removeAllListeners();
+		socket.close();
+	}
 
+	socket = socket_io("http://localhost:" + port);
+	clearTimeout(timeout);
+	
+	last_poll = 0;
+	playing = false;
+	song = "";
+	
+	polling_loop();
+	update_disconnect();
 	socket_listeners(socket);
 }
 
@@ -113,17 +171,8 @@ browser.storage.onChanged.addListener((changes, area_name) => {
 browser.runtime.onMessage.addListener((message) => {
 	switch (message.type) {
 		case MessageType.Open:
-			browser.runtime.sendMessage({
-				type: MessageType.Connected,
-				payload: socket && socket.connected
-			});
-			browser.runtime.sendMessage({
-				type: MessageType.Song,
-				payload: {
-					playing,
-					song
-				}
-			});
+			send_connected();
+			send_playing();
 			break;
 	}
 });

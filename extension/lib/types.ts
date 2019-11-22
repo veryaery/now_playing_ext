@@ -7,5 +7,6 @@ export type Storage = {
 export enum MessageType {
 	Open,
 	Connected,
-	Song
+	Playing,
+	NotPlaying
 };
